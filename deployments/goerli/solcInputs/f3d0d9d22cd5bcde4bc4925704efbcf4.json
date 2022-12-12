@@ -1,0 +1,35 @@
+{
+  "language": "Solidity",
+  "sources": {
+    "contracts/TodoList.sol": {
+      "content": "// SPDX-License-Identifier: MIT\npragma solidity ^0.8.7;\n\nerror TodoList__TaskNameMinimumThree();\nerror TodoList__TaskIndexInvalid();\n\ncontract TodoList {\n    \n    /*----Type declarations-----*/\n    enum TaskStatus {PENDING, DONE}\n    \n    struct Task {\n        string taskName;\n        TaskStatus taskStatus; \n    }\n\n    /*-----Variables-----*/\n    mapping (address => Task[]) taskList;\n\n    /*-----Events-----*/\n    event AddTask(Task indexed task, address indexed user);\n\n\n    /*-----Functions-----*/\n    constructor() {\n        // For this contract, constructor is not need ..!\n    }\n\n    function addTask(string memory taskName) public {\n        if( bytes(taskName).length < 3) {\n            revert TodoList__TaskNameMinimumThree();\n        }\n        taskList[msg.sender].push(Task(taskName,TaskStatus.PENDING));\n        emit AddTask(Task(taskName,TaskStatus.PENDING), msg.sender);\n    }\n\n\n    // task name rewrite\n    function editTaskName(uint256 taskIndex, string memory taskName) public {\n        if(taskIndex < 0 || taskIndex >= getTaskListLength(msg.sender) ){\n            revert TodoList__TaskIndexInvalid();\n        }\n        if( bytes(taskName).length < 3) {\n            revert TodoList__TaskNameMinimumThree();\n        }\n        taskList[msg.sender][taskIndex].taskName = taskName;\n    }\n\n    // task Status update\n    function editTaskStatus(uint256 taskIndex) public {\n        if(taskIndex < 0 || taskIndex >= getTaskListLength(msg.sender) ){\n            revert TodoList__TaskIndexInvalid();\n        }\n        if(taskList[msg.sender][taskIndex].taskStatus == TaskStatus.DONE){\n            taskList[msg.sender][taskIndex].taskStatus = TaskStatus.PENDING;\n        } else {\n            taskList[msg.sender][taskIndex].taskStatus = TaskStatus.DONE;\n        }\n    }\n\n    function taskDelete(uint256 taskIndex) public {\n        if(taskIndex < 0 || taskIndex >= getTaskListLength(msg.sender) ){\n            revert TodoList__TaskIndexInvalid();\n        }\n        uint256 lenght = getTaskListLength(msg.sender);\n        for(uint256 i = taskIndex; i < lenght-1 ; i++) {\n            taskList[msg.sender][i] = taskList[msg.sender][i+1];\n        }\n        taskList[msg.sender].pop();\n    }\n\n    /*-----get/pure Funcions-----*/\n    function getAddressTaskList(address user) public view returns(Task[] memory) {\n        return taskList[user];\n    }\n    function getTaskWithIndex(uint256 taskIndex,address user) public view returns(Task memory) {\n        if(taskIndex < 0 || taskIndex >= getTaskListLength(user) ){\n            revert TodoList__TaskIndexInvalid();\n        }\n        return taskList[user][taskIndex];\n    }\n    function getTaskListLength(address user) public view returns(uint256) {\n        return taskList[user].length;\n    }\n}"
+    }
+  },
+  "settings": {
+    "optimizer": {
+      "enabled": false,
+      "runs": 200
+    },
+    "outputSelection": {
+      "*": {
+        "*": [
+          "abi",
+          "evm.bytecode",
+          "evm.deployedBytecode",
+          "evm.methodIdentifiers",
+          "metadata",
+          "devdoc",
+          "userdoc",
+          "storageLayout",
+          "evm.gasEstimates"
+        ],
+        "": [
+          "ast"
+        ]
+      }
+    },
+    "metadata": {
+      "useLiteralContent": true
+    }
+  }
+}
